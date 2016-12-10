@@ -142,8 +142,8 @@ Response.prototype._handleFormatChange = function(target) {
 };
 
 Response.prototype._setResponseBodyMode = function(format) {
-    this._responseBodyEditor.getSession().setMode(
-        'ace/mode/' + Response.formatMode[format]);
+    // this._responseBodyEditor.getSession().setMode(
+        // 'ace/mode/' + Response.formatMode[format]);
 };
 
 Response.prototype._updateTabTitle = function() {
@@ -155,8 +155,10 @@ Response.prototype._updateTabTitle = function() {
 Response.prototype.setDefaults = function(data) {
     this._statusCode.value = data['status_code'];
     this._format.value = data['format'];
-    this._responseBodyEditor.setValue(data['body']);
-    this._responseHeadersEditor.setValue(data['headers']);
+    // this._responseBodyEditor.setValue(data['body']);
+    // this._responseHeadersEditor.setValue(data['headers']);
+    this._responseBodyEditor.setText(data['body']);
+    this._responseHeadersEditor.setText(data['headers']);
 
     this._updateTabTitle();
 };
@@ -219,6 +221,25 @@ Response.prototype.build = function(supportedFormats) {
 
     this._container.appendChild(formatContainer);
 
+   // test json editor
+    var options = {
+        mode: 'code',
+        modes: ['code', 'tree', 'form', 'text', 'view'], // allowed modes
+        onError: function (err) {
+            alert(err.toString());
+        },
+        onModeChange: function (newMode, oldMode) {
+            console.log('Mode switched from', oldMode, 'to', newMode);
+        }
+    };
+
+    var json = {
+        "code" : 200,
+        "data" : {
+
+        } 
+    };
+
     // response body
     var responseBodyContainer = document.createElement('div');
     responseBodyContainer.className = 'control-group';
@@ -226,15 +247,19 @@ Response.prototype.build = function(supportedFormats) {
     label.setAttribute('for', 'response_body');
     label.innerHTML = 'Response body';
     var responseBodyEditorDiv = document.createElement('div');
-    this._responseBodyEditor = ace.edit(responseBodyEditorDiv);
+    responseBodyEditorDiv.setAttribute("style", "width:100%;height:400px");
+    var bodyEditor = new JSONEditor(responseBodyEditorDiv,options, json);
+
+    this._responseBodyEditor = bodyEditor;//new JSONEditor(responseBodyEditorDiv, options, json); 
     this._setResponseBodyMode(this._format.value);
 
     responseBodyContainer.appendChild(label);
     responseBodyContainer.appendChild(responseBodyEditorDiv);
 
     this._container.appendChild(responseBodyContainer);
-
+    
     // response headers
+    /*
     var responseHeadersContainer = document.createElement('div');
     responseHeadersContainer.className = 'control-group';
     label = document.createElement('label');
@@ -247,6 +272,28 @@ Response.prototype.build = function(supportedFormats) {
     responseHeadersContainer.appendChild(responseHeadersEditorDiv);
 
     this._container.appendChild(responseHeadersContainer);
+    */
+     // Create a new editor
+
+    var responseHeadersEditor = document.createElement('div');
+    responseHeadersEditor.className = 'control-group';
+    label = document.createElement('label');
+    label.setAttribute('for', 'response_headers');
+    // label.innerHTML = 'Response headers';
+    label.innerHTML = '......';
+    var responseHeadersEditorDiv = document.createElement('div');
+    responseHeadersEditor.setAttribute("style", "height:0px")
+
+    var editor = new JSONEditor(responseHeadersEditorDiv, options, null);
+
+    // this._responseHeadersEditor = ace.edit(responseHeadersEditorDiv);
+    // 响应头的编辑器对象
+    this._responseHeadersEditor = editor;
+
+    responseHeadersEditor.appendChild(label);
+    responseHeadersEditor.appendChild(responseHeadersEditorDiv);
+
+    this._container.appendChild(responseHeadersEditor);
 
     return this._container;
 };
@@ -255,8 +302,8 @@ Response.prototype.getData = function() {
     var data = {
         'status_code': this._statusCode.value,
         'format': this._format.value,
-        'body': this._responseBodyEditor.getValue(),
-        'headers': this._responseHeadersEditor.getValue()
+        'body': this._responseBodyEditor.getText(),
+        'headers': this._responseHeadersEditor.getText()
     };
 
     if (!data['body']) {

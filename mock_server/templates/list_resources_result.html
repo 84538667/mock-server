@@ -1,0 +1,62 @@
+{% set active_page = "list_resources" %}
+
+{% block body %}
+
+{% set MAX_NUMBER_OF_METHODS = 9 %}
+{% if request.headers.get('X-Scheme')%}
+{% set protocol = request.headers['X-Scheme'] %}
+{% else %}
+{% set protocol = 'http' %}
+{% end %}
+{% if some_method %}
+{"res":
+{% end %}
+    [
+    {% if some_method %}
+    {% for category, paths in categories.iteritems() %}
+    {% if paths %}
+    {
+        "category":"{{category}}",
+        "path":[
+        {% for type, path in paths %}
+            {"res":[
+            {% if type == "rest" %}
+            {% for resource in path.resources.itervalues() %}
+                {
+                "resourceMethod":"{{resource.method}}",
+                "resoureceUrlPath":"{{resource.url_path}}",
+                "resourceFile":[
+                        {% for i, file in enumerate(resource.files) %}
+                            {
+                                "resourceMethod":"{{resource.method}}",
+                                "pathId":"{{path.id}}",
+                                "fileStatusCode":"{{file.status_code}}",
+                                "filrFormat":"{{file.format}}",
+                                "fileData":{{file.data}}
+                            },
+                        {% end %}
+                    ],
+                    {% if resource.description %}
+                        "resourceDescription":"{{resource.description}}",
+                    {% end %}
+                },
+            {% end %}
+            ],},
+        {% else %}
+    {% end %}
+
+{% end %}
+],},
+{% end %}
+{% end %}
+]}
+
+{% else %}
+
+
+{% end %}
+
+{% end %}
+
+{% block javascripts %}
+{% end %}

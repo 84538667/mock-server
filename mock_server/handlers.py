@@ -5,6 +5,8 @@ import re
 import bcrypt
 import datetime
 import tornado.web
+import json
+import pickle
 
 from crypt import crypt
 from tornado import gen
@@ -364,6 +366,54 @@ class ListResourcesHandler(BaseHandler, FlashMessageMixin):
         # load categories
         categories, methods_with_category = \
             self.api_data.list_categories()
+        
+        # load resources
+        resources_loader = ResourcesLoader(
+            self.api_dir, self.api_data,
+            SUPPORTED_METHODS)
+        paths = resources_loader.load()
+        
+        # load rpc methods
+        rpc_methods_loader = RPCMethodsLoader(
+            self.api_dir, self.api_data,
+            jsonrpc_available)
+        rpc_methods = rpc_methods_loader.load(RPCHandler.PATH)
+        
+        # add resources to category
+        for path in paths:
+            for resource in path.resources.values():
+                if resource.id in methods_with_category:
+                    category = methods_with_category[resource.id]["category"]
+                else:
+                    category = "__default"
+        
+                if path not in categories[category]:
+                    categories[category].append(("rest", path))
+                    break
+        
+        # add rpc methods to category
+        for method in rpc_methods:
+            name = "RPC-%s" % method["name"]
+            if name in methods_with_category:
+                category = methods_with_category[name]["category"]
+            else:
+                category = "__default"
+        
+            categories[category].append(("rpc", method))
+
+        # render to response
+        self.render("list_resources.html", categories=categories,
+                    number_of_methods=len(methods_with_category),
+                    some_method=bool(paths or rpc_methods),
+                    flash_messages=self.get_flash_messages(
+                        ("success", "error")))
+
+    @tornado.web.authenticated
+    def post(self):
+
+        # load categories
+        categories, methods_with_category = \
+            self.api_data.list_categories()
 
         # load resources
         resources_loader = ResourcesLoader(
@@ -399,8 +449,8 @@ class ListResourcesHandler(BaseHandler, FlashMessageMixin):
 
             categories[category].append(("rpc", method))
 
-        # render to response
-        self.render("list_resources.html", categories=categories,
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.render("list_resources_result.html", categories=categories,
                     number_of_methods=len(methods_with_category),
                     some_method=bool(paths or rpc_methods),
                     flash_messages=self.get_flash_messages(
@@ -431,10 +481,9 @@ class CreateResourceMethodHandler(BaseHandler, FlashMessageMixin):
             jsonrpc=jsonrpc_available,
             flash_messages=flash_messages)
 
-    @tornado.web.authenticated
     def post(self):
         # check xsrf cookie
-        self.check_xsrf_cookie()
+        # self.check_xsrf_cookie()
 
         # get data from request body
         data = tornado.escape.json_decode(self.request.body)
@@ -454,6 +503,7 @@ class CreateResourceMethodHandler(BaseHandler, FlashMessageMixin):
             self.api_data.save_category(
                 method_file.id, data["category"])
 
+        self.set_header("Access-Control-Allow-Origin", "*")
         self.set_flash_message(
             "success",
             "Resource '%s' has been successfully created." % data["url_path"])
@@ -549,11 +599,12 @@ class ResourceMethodHandler(BaseHandler, FlashMessageMixin):
         self.api_data.delete_resource(resource)
 
         # redirect
+        self.set_header("Access-Control-Allow-Origin", "*")
         self.set_flash_message(
             "success",
             "Resource method has been successfully deleted.")
 
-        self.redirect("/__manage")
+        #self.redirect("/__manage")
 
 
 class RPCMethodHandler(BaseHandler, FlashMessageMixin):

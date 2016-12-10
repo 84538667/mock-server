@@ -7,9 +7,9 @@
 {% block body %}
 
 {% set MAX_NUMBER_OF_METHODS = 9 %}
-{% if request.headers.get('X-Scheme')%}
+<!-- {% if request.headers.get('X-Scheme')%}
 {% set protocol = request.headers['X-Scheme'] %}
-{% else %}
+{% else %} -->
 {% set protocol = 'http' %}
 {% end %}
 {% if some_method %}

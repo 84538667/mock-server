@@ -135,6 +135,28 @@ class ApiData(object):
                                    key=functools.cmp_to_key(compare_category_name))),
                 resources)
 
+    def list_categories_result(self):
+        if self.resources:
+            categories = {}
+            resources = {}
+            for file_url_path, resource in self.resources.items():
+                if "category" in resource and resource["category"]:
+                    categories[resource["category"]] = []
+                    resources[get_url_path(file_url_path)] = resource
+        else:
+            categories = {}
+            resources = []
+
+        categories["__default"] = []
+
+        def compare_category_name(x, y):
+            if y[0] == "__default":
+                return -1
+            return cmp(x[0].lower(), y[0].lower())
+
+        return (categories.items(),
+                resources)
+
     def save_category(self, resource, category_name):
         self._set_resource_attribute(resource, "category", category_name)
         self.categories.add(category_name)

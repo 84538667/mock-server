@@ -22,7 +22,7 @@ class Application(tornado.web.Application):
             provider_path = os.path.abspath(custom_provider)
             print(provider_path)
             module = imp.load_source('custom_provider', provider_path)
-            if hasattr(module, 'provider'):
+            if hasatr(module, 'provider'):
                 self.custom_provider = module.provider
 
         supported_formats = "|".join(

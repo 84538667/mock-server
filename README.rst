@@ -5,22 +5,19 @@ Simple mock server for REST and XML-RPC API
 
 It can mock GET, POST, PUT, PATCH, DELETE and some more rarely used HTTP methods.
 
-Build status at `Travis CI <http://travis-ci.org/>`_: |travis|
 
-.. |travis| image:: https://travis-ci.org/tomashanacek/mock-server.png?branch=master
-    :target: https://travis-ci.org/tomashanacek/mock-server
-
-DEMO
+Release Notes
 ====
 
-http://demo.mockapi.org/__manage
+1.0 替换ace editor为json editor
+
 
 Installation
 ============
 
 Install with pip::
 
-    $ pip install mock-server
+    $ pip install mock-server tornado==4.2
 
 
 Or install with easy_install::
